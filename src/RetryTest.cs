@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace XUnitRetry
@@ -14,7 +16,7 @@ namespace XUnitRetry
 
         // Will retry 5 times
         [Retry(5, typeof(Exception))]
-        public void Exception_Fail_Test()
+        public void Exception_Fail_And_Retry_Test()
         {
             throw new Exception();
         }
@@ -24,6 +26,20 @@ namespace XUnitRetry
         public void Assert_Fail_Test()
         {
             Assert.Equal(1, 2);
+        }
+
+        [Retry(4, typeof(TaskCanceledException))]
+        public async Task Async_Exception_Fail_And_Retry_Test()
+        {
+            CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await Task.Delay(30_000, cts.Token);
+        }
+
+        [Retry(4, typeof(Exception))]
+        public async Task Async_Exception_Fail__Test()
+        {
+            CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await Task.Delay(30_000, cts.Token);
         }
     }
 }
